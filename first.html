@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button, select, textarea {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            max-width: 500px;
+            font-size: 16px;
+        }
+        textarea {
+            height: 150px;
+            font-family: monospace;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button>
+            <a href="second.html">KeyValuePair</a>
+        </button>
+        <button>
+            <a href="ApiDataCalling.html">GetData</a>
+        </button>
+        <button>
+            <a href="SubmitForm.html">SubmitData</a>
+        </button>
+    </div>
+    <h1>Custom API Tester</h1>
+    <p>Enter the URL of your API, select method, and send a request:</p>
+    <input type="text" id="apiUrl" placeholder="Enter API URL here" />
+    <select id="httpMethod">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+    </select>
+    <textarea id="requestBody" placeholder="Enter JSON body for POST requests (optional)"></textarea>
+    <button id="fetchData">Send Request</button>
+    <textarea id="response" placeholder="Response will appear here..." readonly></textarea>
+
+    <script>
+        document.getElementById('fetchData').addEventListener('click', function () {
+            const url = document.getElementById('apiUrl').value.trim();
+            const method = document.getElementById('httpMethod').value;
+            const requestBody = document.getElementById('requestBody').value.trim();
+            const responseBox = document.getElementById('response');
+            
+            // Clear previous response
+            responseBox.value = '';
+
+            if (!url) {
+                alert('Please enter a valid API URL.');
+                return;
+            }
+
+            // Fetch API Response
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            // Add body for POST request
+            if (method === 'POST' && requestBody) {
+                try {
+                    options.body = JSON.stringify(JSON.parse(requestBody)); // Validate JSON
+                } catch (e) {
+                    responseBox.value = 'Invalid JSON in the request body.\n\n' + e.message;
+                    return;
+                }
+            }
+
+            fetch(url, options)
+                .then(response => {
+                    // Status handling
+                    responseBox.value += `Status: ${response.status} ${response.statusText}\n\n`;
+
+                    // Parse JSON or text
+                    return response.json().catch(() => response.text());
+                })
+                .then(data => {
+                    // Display JSON or plain text data
+                    responseBox.value += typeof data === 'object' 
+                        ? JSON.stringify(data, null, 4) 
+                        : data;
+                })
+                .catch(error => {
+                    // Handle errors
+                    responseBox.value += `Error: ${error.message}`;
+                });
+        });
+    </script>
+</body>
+</html>

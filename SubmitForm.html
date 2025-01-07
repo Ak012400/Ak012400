@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Form with API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-container input, .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-container button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+        .response-container {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .response-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .response-container table th, .response-container table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .response-container table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Submit Product</h2>
+        <form id="productForm" action="https://localhost:44344/api/product" method="POST">
+            <input type="text" name="name" id="productName" placeholder="Enter Product Name" required />
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <div class="response-container" id="responseContainer" style="display:none;">
+        <h2>Submitted Products</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody id="responseBody">
+                <!-- Dynamically added rows will go here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const productForm = document.getElementById('productForm');
+        const responseContainer = document.getElementById('responseContainer');
+        const responseBody = document.getElementById('responseBody');
+
+        productForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(productForm);
+            const productData = {
+                name: formData.get('name')
+            };
+
+            fetch(productForm.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(productData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to submit data.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Show the response container
+                responseContainer.style.display = 'block';
+
+                // Add a new row with the product data
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${data.id}</td>
+                    <td>${data.name}</td>
+                `;
+                responseBody.appendChild(newRow);
+
+                // Clear the form fields
+                productForm.reset();
+            })
+            .catch(error => {
+                alert(error.message);
+            });
+        });
+    </script>
+</body>
+</html>

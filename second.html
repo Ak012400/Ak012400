@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom API Tester (Key-Value Pair)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button, select, textarea {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            max-width: 500px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            max-width: 500px;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        button {
+            cursor: pointer;
+        }
+        textarea {
+            height: 150px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Custom API Tester (Key-Value Pair)</h1>
+    <p>Enter the URL of your API, select method, and send Key-Value body data:</p>
+    <input type="text" id="apiUrl" placeholder="Enter API URL here" />
+    <select id="httpMethod">
+        <option value="GET">GET</option>
+        <option value="POST">POST</option>
+    </select>
+    <table id="keyValueTable">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dynamic rows will be added here -->
+        </tbody>
+    </table>
+    <button id="addRow">Add Key-Value Pair</button>
+    <button id="fetchData">Send Request</button>
+    <textarea id="response" placeholder="Response will appear here..." readonly></textarea>
+
+    <script>
+        const keyValueTable = document.getElementById('keyValueTable').querySelector('tbody');
+        const addRowButton = document.getElementById('addRow');
+        const fetchDataButton = document.getElementById('fetchData');
+        const responseBox = document.getElementById('response');
+
+        // Add new row for Key-Value Pair
+        addRowButton.addEventListener('click', () => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="key-input" placeholder="Key" /></td>
+                <td><input type="text" class="value-input" placeholder="Value" /></td>
+                <td><button class="deleteRow">Delete</button></td>
+            `;
+            keyValueTable.appendChild(row);
+
+            // Add delete functionality to the button
+            row.querySelector('.deleteRow').addEventListener('click', () => {
+                row.remove();
+            });
+        });
+
+        // Send API request
+        fetchDataButton.addEventListener('click', () => {
+            const url = document.getElementById('apiUrl').value.trim();
+            const method = document.getElementById('httpMethod').value;
+
+            // Clear previous response
+            responseBox.value = '';
+
+            if (!url) {
+                alert('Please enter a valid API URL.');
+                return;
+            }
+
+            let options = { method };
+
+            if (method === 'POST') {
+                const data = {};
+                document.querySelectorAll('.key-input').forEach((keyInput, index) => {
+                    const valueInput = document.querySelectorAll('.value-input')[index];
+                    if (keyInput.value) {
+                        data[keyInput.value] = valueInput.value;
+                    }
+                });
+                options.headers = { 'Content-Type': 'application/json' };
+                options.body = JSON.stringify(data);
+            }
+
+            // Fetch API
+            fetch(url, options)
+                .then(response => {
+                    // Display status
+                    responseBox.value += `Status: ${response.status} ${response.statusText}\n\n`;
+
+                    // Check if the response is JSON or plain text
+                    return response.text().then(text => {
+                        try {
+                            const jsonData = JSON.parse(text);
+                            // If it's valid JSON, handle accordingly
+                            return jsonData;
+                        } catch (e) {
+                            // If it's not JSON, treat as text
+                            return text;
+                        }
+                    });
+                })
+                .then(data => {
+                    // Display response data
+                    responseBox.value += typeof data === 'object'
+                        ? JSON.stringify(data, null, 4)
+                        : data;
+                })
+                .catch(error => {
+                    // Handle errors
+                    responseBox.value += `Error: ${error.message}\n\n`;
+                    console.error(error); // Log the error to console for debugging
+                });
+        });
+    </script>
+</body>
+</html>
